@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class SocketClientActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private long num;
     int coreSize = Runtime.getRuntime().availableProcessors() + 2;
     int maxSize = coreSize * 2 + 1;
     ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(coreSize, maxSize, 3,
@@ -51,22 +50,7 @@ public class SocketClientActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void sendMsgToServer() {
-        poolExecutor.submit(() -> {
-            try {
-                InetAddress localHost = InetAddress.getLocalHost();
-                String ip = localHost.toString().split("/")[1];
-//                String ip = "10.53.137.24";
-                Socket socket = new Socket(ip, 9999);
-                DataInputStream inputStream = new DataInputStream(socket.getInputStream());
-                DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
-                outputStream.writeUTF("新中国" + num);
-                outputStream.flush();
-                String s = inputStream.readUTF();
-                runOnUiThread(() -> Toast.makeText(SocketClientActivity.this, "发送的数据为：" + s, Toast.LENGTH_LONG).show());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+        sendPortData(9999);
     }
 
 
@@ -113,6 +97,31 @@ public class SocketClientActivity extends AppCompatActivity implements View.OnCl
             default:
                 break;
         }
-        num++;
+    }
+
+    public void sendMessage2(View view) {
+        sendPortData(10000);
+    }
+
+    public void sendMessage3(View view) {
+        sendPortData(10001);
+    }
+
+    private void sendPortData(int port) {
+        poolExecutor.submit(() -> {
+            try {
+                InetAddress localHost = InetAddress.getLocalHost();
+                String ip = localHost.toString().split("/")[1];
+                Socket socket = new Socket(ip, port);
+                DataInputStream inputStream = new DataInputStream(socket.getInputStream());
+                DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
+                outputStream.writeUTF("新中国--端口：" + socket.getPort());
+                outputStream.flush();
+                String s = inputStream.readUTF();
+                runOnUiThread(() -> Toast.makeText(SocketClientActivity.this, "发送的数据为：" + s, Toast.LENGTH_LONG).show());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 }

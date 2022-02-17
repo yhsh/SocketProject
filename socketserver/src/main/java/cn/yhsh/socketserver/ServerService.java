@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 public class ServerService extends Service {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Socket socket;
+    private int port = 9999;
     int coreSize = Runtime.getRuntime().availableProcessors() + 2;
     int maxSize = coreSize * 2 + 1;
     ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(coreSize, maxSize, 3,
@@ -51,35 +52,37 @@ public class ServerService extends Service {
     public void onCreate() {
         super.onCreate();
         Log.e("ServerService", "服务启动了onCreate");
-        poolExecutor.execute(() -> {
-            try {
-                ServerSocket serverSocket = new ServerSocket(9999);
-                while (true) {
-                    //阻塞方法
-                    socket = serverSocket.accept();
-                    InetAddress inetAddress = socket.getInetAddress();
-                    Log.e("ServerService", "主机地址：" + inetAddress.getHostAddress());
-                    Log.e("ServerService", "主机名字：" + inetAddress.getHostName());
-                    poolExecutor.execute(() -> {
-                        try {
-                            DataInputStream inputStream = new DataInputStream(socket.getInputStream());
-                            DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
-                            while (true) {
-                                String receive = inputStream.readUTF();
-                                Log.e("ServerService：" + Thread.currentThread().getName(), "接收到的数据为：" + receive);
-                                handler.post(() -> Toast.makeText(getApplicationContext(), "ServerService接收到的数据为：" + receive, Toast.LENGTH_SHORT).show());
-                                outputStream.writeUTF(receive);
-                                outputStream.flush();
+        //下面for循环代表开启三个服务端socket端口分别为9999,10000,10001
+        for (int i = 0; i < 3; i++) {
+            poolExecutor.execute(() -> {
+                try {
+                    ServerSocket serverSocket = new ServerSocket(port++);
+                    while (true) {
+                        //阻塞方法
+                        socket = serverSocket.accept();
+                        InetAddress inetAddress = socket.getInetAddress();
+                        Log.e("ServerService", "主机名字：" + inetAddress.getHostName() + "--主机地址：" + inetAddress.getHostAddress() + "--本地端口：" + socket.getLocalPort());
+                        poolExecutor.execute(() -> {
+                            try {
+                                DataInputStream inputStream = new DataInputStream(socket.getInputStream());
+                                DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
+                                while (true) {
+                                    String receive = inputStream.readUTF();
+                                    Log.e("ServerService：" + Thread.currentThread().getName(), "接收到的数据为：" + receive);
+                                    handler.post(() -> Toast.makeText(getApplicationContext(), "ServerService接收到的数据为：" + receive, Toast.LENGTH_SHORT).show());
+                                    outputStream.writeUTF(receive);
+                                    outputStream.flush();
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
+                        });
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+            });
+        }
     }
 
     @Override
