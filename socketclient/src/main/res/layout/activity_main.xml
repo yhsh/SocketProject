@@ -54,6 +54,16 @@
         app:layout_constraintStart_toStartOf="@+id/bt_send_msg2"
         app:layout_constraintTop_toBottomOf="@+id/bt_send_msg2" />
 
+    <Button
+        android:id="@+id/bt_send_msg4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="sendMessage4"
+        android:text="发送byte数据到服务端"
+        app:layout_constraintEnd_toEndOf="@+id/bt_send_msg3"
+        app:layout_constraintStart_toStartOf="@+id/bt_send_msg3"
+        app:layout_constraintTop_toBottomOf="@+id/bt_send_msg3" />
+
     <TextView
         android:id="@+id/tv_receiver"
         android:layout_width="match_parent"

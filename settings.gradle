@@ -1,3 +1,4 @@
 rootProject.name = "SocketProject"
 include ':socketclient'
 include ':socketserver'
+include ':serversocketbyte'

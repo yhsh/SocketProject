@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -47,6 +49,10 @@ public class SocketClientActivity extends AppCompatActivity implements View.OnCl
         Intent intent = new Intent();
         intent.setComponent(new ComponentName("cn.yhsh.socketserver", "cn.yhsh.socketserver.ServerService"));
         startService(intent);
+
+        Intent intentByte = new Intent();
+        intentByte.setComponent(new ComponentName("cn.yhsh.serversocketbyte", "cn.yhsh.serversocketbyte.ServerServiceByte"));
+        startService(intentByte);
     }
 
     private void sendMsgToServer() {
@@ -119,6 +125,23 @@ public class SocketClientActivity extends AppCompatActivity implements View.OnCl
                 outputStream.flush();
                 String s = inputStream.readUTF();
                 runOnUiThread(() -> Toast.makeText(SocketClientActivity.this, "发送的数据为：" + s, Toast.LENGTH_LONG).show());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void sendMessage4(View view) {
+        poolExecutor.submit(() -> {
+            try {
+                InetAddress localHost = InetAddress.getLocalHost();
+                String ip = localHost.toString().split("/")[1];
+                Socket socket = new Socket(ip, 1111);
+                DataInputStream inputStream = new DataInputStream(socket.getInputStream());
+                DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
+                String s = "测试发送字节数据1111新中国--端口：" + socket.getPort();
+                outputStream.write(s.getBytes());
+                outputStream.flush();
             } catch (IOException e) {
                 e.printStackTrace();
             }
